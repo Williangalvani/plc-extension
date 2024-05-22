@@ -1,60 +1,60 @@
-#!/usr/bin/env python3
-
-import requests
-import logging.handlers
+#! /usr/bin/env python3
 from pathlib import Path
-from litestar import Litestar, get, MediaType
-from litestar.controller import Controller
-from litestar.datastructures import State
-from litestar.logging import LoggingConfig
-from litestar.static_files.config import StaticFilesConfig
 
-class CountController(Controller):
-    COUNT_VAR = 'quickstart_backend_perm_count'
-    def __init__(self, *args, **kwargs):
-        self._temp_count = 0
-        super().__init__(*args, **kwargs)
+from plc import PlcTester
 
-    @get("/temp_count", sync_to_thread=False)
-    def increment_temp_count(self) -> dict[str, int]:
-        self._temp_count += 1
-        return {"value": self._temp_count}
+import appdirs
+import uvicorn
+from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi_versioning import VersionedFastAPI, version
+from loguru import logger
+from typing import Any
 
-    @get("/persistent_count", sync_to_thread=True)
-    def increment_persistent_count(self, state: State) -> dict[str, int]:
-        # read the existing persistent count value (from the BlueOS "Bag of Holding" service API)
-        try:
-            response = requests.get(f'{state.bag_url}/get/{self.COUNT_VAR}')
-            response.raise_for_status()
-            value = response.json()['value']
-        except Exception as e:  # TODO: specifically except HTTP error 400 (using response.status_code?)
-            value = 0
-        value += 1
-        # write the incremented value back out
-        output = {'value': value}
-        requests.post(f'{state.bag_url}/set/{self.COUNT_VAR}', json=output)
-        return output
 
-logging_config = LoggingConfig(
-    loggers={
-        __name__: dict(
-            level='INFO',
-            handlers=['queue_listener'],
-        )
-    },
+from pydantic import BaseModel
+
+
+class TextData(BaseModel):
+    data: str
+
+
+SERVICE_NAME = "PLC Extension"
+
+app = FastAPI(
+    title="PLC Extension API",
+    description="API for the PLC extension",
 )
 
-log_dir = Path('/app/logs')
-log_dir.mkdir(parents=True, exist_ok=True)
-fh = logging.handlers.RotatingFileHandler(log_dir / 'lumber.log', maxBytes=2**16, backupCount=1)
+logger.info(f"Starting {SERVICE_NAME}!")
+tester = PlcTester()
 
-app = Litestar(
-    route_handlers=[CountController],
-    state=State({'bag_url':'http://host.docker.internal/bag/v1.0'}),
-    static_files_config=[
-        StaticFilesConfig(directories=['app/static'], path='/', html_mode=True)
-    ],
-    logging_config=logging_config,
-)
+@app.get("/devices", status_code=status.HTTP_200_OK)
+@version(1, 0)
+async def detect_devices() -> Any:
+  return tester.detect_devices()
 
-app.logger.addHandler(fh)
+@app.get("/tonemap", status_code=status.HTTP_200_OK)
+@version(1, 0)
+async def tonemap() -> Any:
+  return tester.read_tonemap()
+
+
+@app.get("/rate", status_code=status.HTTP_200_OK)
+@version(1, 0)
+async def tonemap() -> Any:
+  return tester.read_rates()
+
+
+app = VersionedFastAPI(app, version="1.0.0", prefix_format="/v{major}.{minor}", enable_latest=True)
+
+app.mount("/", StaticFiles(directory="static",html = True), name="static")
+
+@app.get("/", response_class=FileResponse)
+async def root() -> Any:
+        return "index.html"
+
+if __name__ == "__main__":
+    # Running uvicorn with log disabled so loguru can handle it
+    uvicorn.run(app, host="0.0.0.0", port=1142, log_config=None)

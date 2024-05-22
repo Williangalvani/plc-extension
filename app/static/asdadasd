@@ -17,7 +17,6 @@
     margin-bottom: 30px;
     text-align: center;
   }
-
   td {
     padding-left: 10px;
     padding-right: 10px;
@@ -31,21 +30,21 @@
         <h1>PLC Extension</h1>
         <!-- This card is from  https://vuetifyjs.com/en/components/cards/#outlined -->
         <v-row>
-          <v-card class="mx-auto" outlined>
+          <v-card class="mx-auto" max-width="700" outlined>
             <v-card-title>
-              <h2>Device</h2>
+              <h2>Devicesadasdasd</h2>
             </v-card-title>
-            <v-card class="d-flex flex-column mx-auto" v-for="device in devices" :key="device.mac">
-              <v-card-title>
-                <h3>{{ device.mac }}</h3>
-              </v-card-title>
-              <v-card-text>
-                <p>Type: {{ device.is_local ? "Local" : "Remote" }}</p>
-                <p>Firmware: {{ device.firmware }}</p>
-              </v-card-text>
-            </v-card>
-          </v-card>
-
+            <span>
+              asdadasd
+              <v-card class="d-flex flex-column" v-for="device in devices" :key="device.mac">
+                <v-card-title>
+                  <h3>{{ device.mac }}</h3>
+                </v-card-title>
+                <v-card-text>
+                  <p>Type: {{ device.is_local ? "Local" : "Remote" }}</p>
+                  <p>Firmware: {{ device.firmware }}</p>
+                </v-card-text>
+              </v-card>
           <v-card>
             <v-card-title>
               <h2>Rate</h2>
@@ -53,8 +52,11 @@
             <div id="rate"></div>
           </v-card>
         </v-row>
-        <v-row class="d-flex flex-row">
-          <v-card class="mx-auto" outlined>
+        <v-row>
+          <v-card>
+            <v-card-title>
+              <h2>ToneMap</h2>
+            </v-card-title>
             <div id="tonemap"></div>
           </v-card>
         </v-row>
@@ -196,7 +198,7 @@
           mode: 'lines',
           line: { color: '#DF56F1' }
         }],
-          layout2);
+      layout2);
 
       },
       replotRates() {

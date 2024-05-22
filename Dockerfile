@@ -2,8 +2,9 @@ FROM python:3.11-slim
 
 COPY app /app
 RUN python -m pip install /app --extra-index-url https://www.piwheels.org/simple
-
-EXPOSE 8000/tcp
+RUN apt update && apt install -y gcc build-essential github
+RUN git clone https://github.com/qca/open-plc-utils.git
+RUN cd open-plc-utils && make && make install
 
 LABEL version="0.0.3"
 
@@ -11,19 +12,10 @@ ARG IMAGE_NAME
 
 LABEL permissions='\
 {\
-  "ExposedPorts": {\
-    "8000/tcp": {}\
-  },\
+  "NetworkMode": "host",\
   "HostConfig": {\
-    "Binds":["/usr/blueos/extensions/$IMAGE_NAME:/app"],\
-    "ExtraHosts": ["host.docker.internal:host-gateway"],\
-    "PortBindings": {\
-      "8000/tcp": [\
-        {\
-          "HostPort": ""\
-        }\
-      ]\
-    }\
+    "Privileged": true,\
+    "NetworkMode": "host"\
   }\
 }'
 
