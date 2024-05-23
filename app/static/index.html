@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>PLC Extension</title>
+  <title>Tether diagnostics</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link href="/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="/css/vuetify.min.css" rel="stylesheet">
@@ -28,7 +28,7 @@
   <v-app>
     <v-main>
       <v-container>
-        <h1>PLC Extension</h1>
+        <h1>Tether Diagnostics</h1>
         <!-- This card is from  https://vuetifyjs.com/en/components/cards/#outlined -->
         <v-row class="d-flex align-stretch" style="width: 100%; row-gap: 10px;">
           <div style="width: 50%" class="d-row align-stretch">
@@ -41,23 +41,24 @@
                   <h3>{{ device.mac }}</h3>
                 </v-card-title>
                 <v-card-text>
-                  <p>Type: {{ device.is_local ? "Local" : "Remote" }}</p>
-                  <p>Firmware: {{ device.firmware }}</p>
+                  <p><b>Type:</b> {{ device.is_local ? "Local" : "Remote" }}</p>
+                  <p><b>Firmware:</b> {{ device.firmware }}</p>
                 </v-card-text>
               </v-card>
             </v-card>
           </div>
           <div style="width: 50%" class="d-row align-stretch">
             <v-card>
-              <v-card-title>
-                <h2>Rate</h2>
-              </v-card-title>
-              <div id="rate"></div>
+              <div id="rate-wrapper" style="width: 100%; max-width: 100%;">
+                <div id="rate"></div>
+              </div>
             </v-card>
           </div>
+          <div id="tonemap-wrapper" style="width: 100%; max-width: 100%;">
           <v-card class="mx-auto" outlined style="width: 100%">
             <div id="tonemap"></div>
           </v-card>
+          </div>
         </v-row>
       </v-container>
     </v-main>
@@ -82,20 +83,31 @@
     paper_bgcolor: "transparent",
     plot_bgcolor: "transparent",
     yaxis: {
+      title: "Computed mean-square of the time slot modulation data",
       range: [0, 50],
       autorange: false
     }
   };
 
   const layout2 = {
-    height: 400,
-    width: 500,
+    height: 450,
+    width: 550,
+    title: {
+      text:'Plot Title',
+      font: {
+        family: 'Courier New, monospace',
+        size: 24
+      },
+      xref: 'paper',
+      x: 0.05,
+    },
     autosize: true,
     paper_bgcolor: "transparent",
     plot_bgcolor: "transparent",
     yaxis: {
       autorange: false,
       range: [0, 200],
+      title: "Mbps",
     }
   };
 
@@ -165,25 +177,30 @@
           x: x_axis,
           y: this.tonemap_mins,
           name: "min",
-          type: "bar"
+          type: "line"
         };
-        const current_value = this.tonemap.map((x, index) => x[1] - this.tonemap_mins[index]);
         const values = {
           x: x_axis,
-          y: current_value,
+          y: this.tonemap.map((x, index) => x[1]),
           name: "current",
-          type: "bar"
+          type: "line"
         };
-        max_value = this.tonemap_maxs.map((x, index) => x - current_value[index] - this.tonemap_mins[index]);
         const maxes = {
           x: x_axis,
-          y: max_value,
+          y: this.tonemap_maxs,
           name: "max",
-          type: "bar"
+          type: "line"
         };
         const newData = [mins, values, maxes];
         Plotly.deleteTraces("tonemap", [0, 1, 2])
         Plotly.addTraces("tonemap", newData);
+        const wrapper = document.getElementById('tonemap-wrapper')
+        console.log(wrapper.getBoundingClientRect())
+        Plotly.relayout(
+          'tonemap', {
+            width: wrapper.getBoundingClientRect().width - 20,
+          }
+        )
       },
       plotRate() {
         Plotly.newPlot('rate', [{
@@ -209,6 +226,13 @@
         Plotly.extendTraces('rate', {
           y: [[new_rates[0]], [new_rates[1]]]
         }, [0, 1])
+        const wrapper = document.getElementById('rate-wrapper')
+        console.log(wrapper.getBoundingClientRect())
+        Plotly.relayout(
+          'rate', {
+            width: wrapper.getBoundingClientRect().width,
+          }
+        )
       },
       plot() {
         const numbers = Array.from({ length: 912 }, (_, i) => i + 1);
