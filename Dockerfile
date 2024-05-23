@@ -2,9 +2,8 @@ FROM python:3.11-slim
 
 COPY app /app
 RUN python -m pip install /app --extra-index-url https://www.piwheels.org/simple
-RUN apt update && apt install -y gcc build-essential github
-RUN git clone https://github.com/qca/open-plc-utils.git
-RUN cd open-plc-utils && make && make install
+RUN apt update && apt install -y gcc build-essential git && git clone https://github.com/qca/open-plc-utils.git && cd open-plc-utils && make && make install && apt remove -y gcc build-essential git && apt autoremove -y
+
 
 LABEL version="0.0.3"
 
@@ -44,4 +43,4 @@ LABEL links='{\
     }'
 LABEL requirements="core >= 1.1"
 
-ENTRYPOINT litestar run --host 0.0.0.0
+ENTRYPOINT cd app && python main.py
