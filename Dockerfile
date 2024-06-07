@@ -5,7 +5,7 @@ RUN python -m pip install /app --extra-index-url https://www.piwheels.org/simple
 RUN apt update && apt install -y gcc build-essential git && git clone https://github.com/qca/open-plc-utils.git && cd open-plc-utils && make && make install && apt remove -y gcc build-essential git && apt autoremove -y
 
 
-LABEL version="0.0.3"
+LABEL version="0.0.4"
 
 ARG IMAGE_NAME
 
@@ -22,8 +22,8 @@ ARG AUTHOR
 ARG AUTHOR_EMAIL
 LABEL authors='[\
     {\
-        "name": "$AUTHOR",\
-        "email": "$AUTHOR_EMAIL"\
+        "name": "Willian Galvani",\
+        "email": "wiliangalvani@gmail.com"\
     }\
 ]'
 
@@ -31,15 +31,15 @@ ARG MAINTAINER
 ARG MAINTAINER_EMAIL
 LABEL company='{\
         "about": "",\
-        "name": "$MAINTAINER",\
-        "email": "$MAINTAINER_EMAIL"\
+        "name": "Willian Galvani",\
+        "email": "wiliangalvani@gmail.com"\
     }'
-LABEL type="example"
+LABEL type="tool"
 ARG REPO
 ARG OWNER
-LABEL readme='https://raw.githubusercontent.com/$OWNER/$REPO/{tag}/README.md'
+LABEL readme='https://raw.githubusercontent.com/williangalvani/plc-extension/{tag}/README.md'
 LABEL links='{\
-        "source": "https://github.com/$OWNER/$REPO"\
+        "source": "https://github.com/williangalvani/plc-extension"\
     }'
 LABEL requirements="core >= 1.1"
 
