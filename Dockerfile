@@ -5,7 +5,7 @@ RUN python -m pip install /app --extra-index-url https://www.piwheels.org/simple
 RUN apt update && apt install -y gcc build-essential git && git clone https://github.com/qca/open-plc-utils.git && cd open-plc-utils && make && make install && apt remove -y gcc build-essential git && apt autoremove -y
 
 
-LABEL version="0.0.4"
+LABEL version="v0.0.5"
 
 ARG IMAGE_NAME
 
