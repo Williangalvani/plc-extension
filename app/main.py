@@ -46,6 +46,11 @@ async def tonemap() -> Any:
 async def tonemap() -> Any:
   return tester.read_rates()
 
+@app.get("/snr", status_code=status.HTTP_200_OK)
+@version(1, 0)
+async def snr() -> Any:
+  return tester.read_snr()
+
 
 app = VersionedFastAPI(app, version="1.0.0", prefix_format="/v{major}.{minor}", enable_latest=True)
 
