@@ -1,21 +1,15 @@
 name: Deploy BlueOS Extension Image
 
 on:
-  # Automatically run when a new commit is added to the repository
-  #push:
-  # Automatically run when someone makes a Pull Request to the repository
-  #pull_request:
-  # Run manually
-  workflow_dispatch:
-  # NOTE: caches may be removed if not run weekly
-  #  -> may be worth scheduling for every 6 days
+  push:
+  pull_request:
 
 jobs:
   deploy-docker-image:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy BlueOS Extension
-        uses: BlueOS-community/Deploy-BlueOS-Extension@v1.0.1
+        uses: BlueOS-community/Deploy-BlueOS-Extension@v1
         with:
           docker-username: ${{ secrets.DOCKER_USERNAME }}
           docker-password: ${{ secrets.DOCKER_PASSWORD }}
