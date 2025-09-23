@@ -35,58 +35,104 @@ class PlcTester:
 
 
     def detect_devices(self):
-        command = f"plcstat -t -i {self.interface}"
-        raw_output = subprocess.check_output(command, shell=True).decode()
-        entries = raw_output.splitlines()[1:]
-        self.local = None
-        self.remote = None
-        self.devices = []
-        for entry in entries:
-            self.devices.append(Device.from_str(entry))
-            
-        if len(entries) >= 1:
-            self.local = Device.from_str(entries[0])
-        if len(entries) >= 2:
-            self.remote = Device.from_str(entries[1])
-        return self.devices
+        try:
+            command = f"plcstat -t -i {self.interface}"
+            raw_output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode()
+            entries = raw_output.splitlines()[1:]
+            self.local = None
+            self.remote = None
+            self.devices = []
+            for entry in entries:
+                if entry.strip():  # Skip empty lines
+                    self.devices.append(Device.from_str(entry))
+                
+            if len(entries) >= 1:
+                self.local = Device.from_str(entries[0])
+            if len(entries) >= 2:
+                self.remote = Device.from_str(entries[1])
+            return self.devices
+        except subprocess.CalledProcessError as e:
+            print(f"Error running plcstat: {e}")
+            self.local = None
+            self.remote = None
+            self.devices = []
+            return self.devices
+        except Exception as e:
+            print(f"Unexpected error in detect_devices: {e}")
+            self.local = None
+            self.remote = None
+            self.devices = []
+            return self.devices
 
     def read_tonemap(self):
-        if not self.remote:
+        if not self.local or not self.remote:
             return None
-        command = f"plctone -i {self.interface} -q {self.local.mac} {self.remote.mac}"
-        raw_output = subprocess.check_output(command, shell=True).decode()
-        output = []
-        for line in raw_output.splitlines():
-            offset = int(line.split(",")[0])
-            tone = int(line.split(" ")[1])
-            output.append((offset, tone))
-        return output
+        try:
+            command = f"plctone -i {self.interface} -q {self.local.mac} {self.remote.mac}"
+            raw_output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode()
+            output = []
+            for line in raw_output.splitlines():
+                if line.strip():
+                    parts = line.split(",")
+                    if len(parts) >= 2:
+                        offset = int(parts[0])
+                        tone = int(line.split(" ")[1])
+                        output.append((offset, tone))
+            return output
+        except subprocess.CalledProcessError as e:
+            print(f"Error running plctone: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error in read_tonemap: {e}")
+            return None
 
     def read_rates(self):
-        if not self.remote:
+        if not self.local or not self.remote:
             return None
-        command = f"plcrate -q -i {self.interface} -q {self.local.mac} {self.remote.mac}"
-        raw_output = subprocess.check_output(command, shell=True).decode()
-        output = []
-        
-        for line in raw_output.splitlines():
-            if "TX" in line:
-                rate = int(line.split("TX")[1].split()[0])
-                output.append(rate)
-            if "RX" in line:
-                rate = int(line.split("RX")[1].split()[0])
-                output.append(rate)
-        return output
+        try:
+            command = f"plcrate -q -i {self.interface} -q {self.local.mac} {self.remote.mac}"
+            raw_output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode()
+            output = []
+            
+            for line in raw_output.splitlines():
+                if "TX" in line:
+                    try:
+                        rate = int(line.split("TX")[1].split()[0])
+                        output.append(rate)
+                    except (IndexError, ValueError):
+                        pass
+                if "RX" in line:
+                    try:
+                        rate = int(line.split("RX")[1].split()[0])
+                        output.append(rate)
+                    except (IndexError, ValueError):
+                        pass
+            return output
+        except subprocess.CalledProcessError as e:
+            print(f"Error running plcrate: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error in read_rates: {e}")
+            return None
 
     def read_snr(self):
-        command = f"plcrate -i {self.interface} -qs{self.local.mac} {self.remote.mac}"
-        raw_output = subprocess.check_output(command, shell=True).decode()
-        return raw_output
+        if not self.local or not self.remote:
+            return None
+        try:
+            command = f"plcrate -i {self.interface} -qs{self.local.mac} {self.remote.mac}"
+            raw_output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode()
+            return raw_output
+        except subprocess.CalledProcessError as e:
+            print(f"Error running plcrate for SNR: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error in read_snr: {e}")
+            return None
 
 
 if __name__ == "__main__": 
     tester = PlcTester()
     print(tester.devices)
     print(tester.read_tonemap())
-    print(tester.read_bw())
+    print(tester.read_rates())
     print(tester.read_snr())

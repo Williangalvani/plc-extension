@@ -1,8 +1,12 @@
-FROM python:3.11-slim
+FROM python:3.11-slim as base
 
-COPY app /app
-RUN python -m pip install /app --extra-index-url https://www.piwheels.org/simple
 RUN apt update && apt install -y gcc build-essential git && git clone https://github.com/qca/open-plc-utils.git && cd open-plc-utils && make && make install && apt remove -y gcc build-essential git && apt autoremove -y
+
+FROM base
+
+COPY app/setup.py /app/setup.py
+RUN cd /app && python -m pip install --extra-index-url https://www.piwheels.org/simple .
+COPY app /app
 
 
 LABEL version="v0.0.5"
@@ -14,7 +18,10 @@ LABEL permissions='\
   "NetworkMode": "host",\
   "HostConfig": {\
     "Privileged": true,\
-    "NetworkMode": "host"\
+    "NetworkMode": "host",\
+    "Binds": [\
+      "/proc:/proc:ro"\
+    ]\
   }\
 }'
 
