@@ -8,7 +8,7 @@ The Device card should show the local device (onboard the vehicle), plus any oth
 
 <p align="center">
   <a href="doc/devices.png">
-    <img src="doc/devices.png" width="50%" alt="connected local and remote devices">
+    <img src="https://github.com/Williangalvani/plc-extension/blob/main/doc/devices.png" width="50%" alt="connected local and remote devices">
   </a>
 </p>
 
@@ -22,7 +22,7 @@ PLC operates with high frequency signals, so it is possible for a cable to be br
 
 The directionality plot shows transmit (TX) and receive (RX) bandwidths at the physical (PHY) layer of the network stack. Practical _usable_ bandwidth (measured by a network test) is lower, due to networking overheads.
 
-![ideal, 200m tether, single-wire, and wrong pair connection plots](doc/bandwidth-examples.png)
+![ideal, 200m tether, single-wire, and wrong pair connection plots](https://github.com/Williangalvani/plc-extension/blob/main/doc/bandwidth-examples.png)
 
 - A healthy tether connection should have steady and roughly equal transmit and receive bandwidths
 - Sharp dips indicate an intermittent connection
@@ -36,7 +36,7 @@ The directionality plot shows transmit (TX) and receive (RX) bandwidths at the p
 
 Powerline communication involves splitting the signal over multiple frequency bands (like radio channels). The channel plot indicates usable capacity of each frequency channel.
 
-![ideal, 200m tether, single-wire, and wrong pair channel plots](doc/channels-examples.png)
+![ideal, 200m tether, single-wire, and wrong pair channel plots](https://github.com/Williangalvani/plc-extension/blob/main/doc/channels-examples.png)
 
 - A channel with a score of 49 is fully available for the current network connection
    - Lower scores may indicate sources of electrical noise, collisions with other devices on the same lines, or impedance issues with the cable.
